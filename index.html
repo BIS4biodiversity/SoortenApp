@@ -1,0 +1,1043 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="theme-color" content="#24513B" />
+  <title>Soorten van Nederland</title>
+  <link rel="manifest" href="manifest.json" />
+  <style>
+    :root {
+      --bg: #FAF7F0;
+      --primary: #24513B;
+      --secondary: #6C8F5A;
+      --ochre: #D9A441;
+      --text: #242A24;
+      --muted: #6B756B;
+      --card: #FFFFFF;
+      --border: #E3E7E0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Inter", "Segoe UI", Roboto, sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      line-height: 1.45;
+      padding-bottom: 88px;
+    }
+
+    .app-shell {
+      max-width: 480px;
+      margin: 0 auto;
+      padding: 16px;
+    }
+
+    .view { display: none; }
+    .view.active { display: block; }
+
+    header h1, .page-heading {
+      font-size: 1.5rem;
+      font-weight: 800;
+      color: var(--text);
+      margin-bottom: 12px;
+    }
+
+    .search-box {
+      position: relative;
+      margin-bottom: 14px;
+    }
+    .search-box input {
+      width: 100%;
+      min-height: 46px;
+      padding: 10px 16px 10px 42px;
+      border-radius: 14px;
+      border: 1.5px solid var(--border);
+      background: var(--card);
+      font-size: 1rem;
+      color: var(--text);
+    }
+    .search-box input:focus {
+      outline: 2px solid var(--primary);
+      border-color: var(--primary);
+    }
+    .search-icon {
+      position: absolute;
+      left: 14px;
+      top: 50%;
+      transform: translateY(-50%);
+      color: var(--muted);
+      font-size: 1.1rem;
+    }
+
+    .groups-scroll, .filter-row {
+      display: flex;
+      gap: 8px;
+      overflow-x: auto;
+      padding-bottom: 8px;
+      margin-bottom: 14px;
+      scrollbar-width: none;
+    }
+    .groups-scroll::-webkit-scrollbar, .filter-row::-webkit-scrollbar { display: none; }
+
+    .chip {
+      flex: 0 0 auto;
+      min-height: 44px;
+      padding: 10px 15px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--text);
+      font-weight: 600;
+      font-size: 0.88rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .chip.active {
+      background: var(--primary);
+      color: #FFFFFF;
+      border-color: var(--primary);
+    }
+
+    .filter-label {
+      font-size: 0.78rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.04em;
+      color: var(--muted);
+      margin-bottom: 6px;
+      display: block;
+    }
+
+    section { margin-bottom: 22px; }
+    h2 {
+      font-size: 1.15rem;
+      font-weight: 700;
+      margin-bottom: 12px;
+      color: var(--text);
+    }
+
+    .card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      overflow: hidden;
+      box-shadow: 0 2px 8px rgba(36, 42, 36, 0.04);
+      cursor: pointer;
+      transition: transform 0.12s ease;
+    }
+    .card:active { transform: scale(0.99); }
+
+    .photo-frame {
+      position: relative;
+      background: #EBF0E8;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      align-items: center;
+      text-align: center;
+      padding: 14px;
+      color: var(--primary);
+      overflow: hidden;
+    }
+    .photo-frame.hero { height: 210px; }
+    .photo-frame.detail-hero { height: 240px; border-radius: 18px; margin-bottom: 16px; border: 1px solid var(--border); }
+    .photo-frame.thumb { height: 120px; }
+    .photo-frame img {
+      position: absolute;
+      inset: 0;
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+    .photo-placeholder-text {
+      font-size: 0.76rem;
+      color: var(--muted);
+      word-break: break-all;
+    }
+    .photo-credit-tag {
+      position: absolute;
+      bottom: 8px;
+      right: 8px;
+      background: rgba(255, 255, 255, 0.92);
+      color: var(--text);
+      font-size: 0.68rem;
+      padding: 3px 8px;
+      border-radius: 8px;
+      border: 1px solid var(--border);
+    }
+
+    .card-body { padding: 14px; }
+    .species-nl { font-size: 1.08rem; font-weight: 700; color: var(--text); }
+    .species-sci { font-size: 0.88rem; font-style: italic; color: var(--muted); margin-bottom: 6px; }
+    .species-desc { font-size: 0.9rem; color: var(--text); margin-top: 8px; }
+
+    .badge-row { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+    .badge {
+      font-size: 0.74rem;
+      font-weight: 700;
+      padding: 4px 10px;
+      border-radius: 999px;
+      display: inline-block;
+    }
+    .badge-group { background: #EEF2EB; color: var(--primary); }
+    .badge-inheems { background: #DCEEE2; color: #1B4D32; }
+    .badge-niet-inheems, .badge-geintroduceerd { background: #DCE8F2; color: #1D4669; }
+    .badge-migrerend { background: #F7E8C8; color: #6E4B09; }
+    .badge-onzeker { background: #E6E8E6; color: #3D423D; }
+
+    .species-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 12px;
+    }
+    .species-grid .card-body { padding: 10px 12px; }
+    .species-grid .species-nl { font-size: 0.96rem; }
+    .species-grid .species-sci { font-size: 0.78rem; }
+
+    /* Detailpagina */
+    .back-btn {
+      min-height: 44px;
+      padding: 8px 14px;
+      border-radius: 12px;
+      border: 1px solid var(--border);
+      background: var(--card);
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 0.92rem;
+      cursor: pointer;
+      margin-bottom: 14px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+    }
+    .detail-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 18px;
+      padding: 16px;
+      margin-bottom: 14px;
+    }
+    .detail-title { font-size: 1.45rem; font-weight: 800; color: var(--text); }
+    .detail-en { font-size: 0.92rem; color: var(--muted); margin-top: 2px; }
+    .detail-sci { font-size: 1rem; font-style: italic; color: var(--muted); margin-bottom: 10px; }
+
+    .action-row {
+      display: flex;
+      gap: 10px;
+      margin-top: 14px;
+    }
+    .action-btn {
+      flex: 1;
+      min-height: 46px;
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1.5px solid var(--primary);
+      background: var(--card);
+      color: var(--primary);
+      font-weight: 700;
+      font-size: 0.9rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      gap: 6px;
+    }
+    .action-btn.active {
+      background: var(--primary);
+      color: #FFFFFF;
+    }
+
+    .meta-grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 14px;
+      padding-top: 14px;
+      border-top: 1px solid var(--border);
+    }
+    .meta-item strong {
+      display: block;
+      font-size: 0.8rem;
+      color: var(--muted);
+      text-transform: uppercase;
+      letter-spacing: 0.03em;
+      margin-bottom: 3px;
+    }
+    .meta-item span, .meta-item a {
+      font-size: 0.94rem;
+      color: var(--text);
+    }
+    .meta-item a {
+      color: var(--primary);
+      font-weight: 600;
+      text-decoration: underline;
+    }
+
+    /* Mijn lijst */
+    .list-row {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 10px;
+    }
+    .list-row-info {
+      flex: 1;
+      cursor: pointer;
+    }
+    .list-row-title {
+      font-weight: 700;
+      font-size: 1rem;
+      color: var(--text);
+    }
+    .list-row-sub {
+      font-size: 0.82rem;
+      color: var(--muted);
+    }
+    .icon-btn {
+      min-width: 44px;
+      min-height: 44px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+      background: var(--bg);
+      color: var(--text);
+      font-size: 1rem;
+      cursor: pointer;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .export-bar {
+      display: flex;
+      gap: 10px;
+      margin-bottom: 18px;
+    }
+
+    .empty-state {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 22px 16px;
+      text-align: center;
+      color: var(--muted);
+      font-size: 0.92rem;
+    }
+    .reset-btn {
+      min-height: 44px;
+      margin-top: 12px;
+      padding: 10px 16px;
+      border-radius: 12px;
+      border: none;
+      background: var(--primary);
+      color: #fff;
+      font-weight: 600;
+      cursor: pointer;
+    }
+
+    .csv-panel {
+      background: var(--card);
+      border: 1px dashed var(--secondary);
+      border-radius: 14px;
+      padding: 14px;
+      font-size: 0.85rem;
+    }
+    .csv-panel label {
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 44px;
+      margin-top: 8px;
+      padding: 10px 14px;
+      background: var(--primary);
+      color: #fff;
+      border-radius: 10px;
+      font-weight: 600;
+      cursor: pointer;
+    }
+    .csv-panel input[type="file"] { display: none; }
+
+    .bottom-nav {
+      position: fixed;
+      bottom: 0;
+      left: 0;
+      right: 0;
+      background: var(--card);
+      border-top: 1px solid var(--border);
+      display: flex;
+      justify-content: space-around;
+      padding: 6px 4px;
+      z-index: 20;
+    }
+    .bottom-nav-inner {
+      max-width: 480px;
+      width: 100%;
+      display: flex;
+      justify-content: space-around;
+    }
+    .nav-item {
+      min-width: 56px;
+      min-height: 48px;
+      background: none;
+      border: none;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      font-size: 0.72rem;
+      font-weight: 600;
+      color: var(--muted);
+      cursor: pointer;
+    }
+    .nav-item.active { color: var(--primary); }
+    .nav-item span.icon { font-size: 1.2rem; margin-bottom: 2px; }
+
+    .toast {
+      position: fixed;
+      bottom: 76px;
+      left: 50%;
+      transform: translateX(-50%);
+      background: var(--text);
+      color: #fff;
+      padding: 10px 16px;
+      border-radius: 12px;
+      font-size: 0.85rem;
+      display: none;
+      z-index: 30;
+      white-space: nowrap;
+    }
+  </style>
+</head>
+<body>
+  <div class="app-shell">
+    <!-- HOME VIEW -->
+    <main id="view-home" class="view active">
+      <header>
+        <h1>Soorten van Nederland</h1>
+        <div class="search-box">
+          <span class="search-icon" aria-hidden="true">🔍</span>
+          <input id="homeSearchInput" type="search" placeholder="Zoek een soort…" aria-label="Zoek een soort" />
+        </div>
+      </header>
+
+      <nav class="groups-scroll" aria-label="Soortgroepen" id="homeGroupShortcuts"></nav>
+
+      <section aria-labelledby="featured-heading">
+        <h2 id="featured-heading">Soort van de week</h2>
+        <div id="featuredContainer"></div>
+      </section>
+
+      <section aria-labelledby="popular-heading">
+        <h2 id="popular-heading">Veel gezien deze maand</h2>
+        <div class="species-grid" id="homeGridContainer"></div>
+      </section>
+
+      <section class="csv-panel">
+        <strong>Eigen CSV-bestand testen</strong>
+        <p style="color: var(--muted); margin-top: 4px;">
+          Laad een CSV met de velden uit het sjabloon (<code>slug,group,dutch_name,...</code>) om direct nieuwe soorten te tonen.
+        </p>
+        <label for="csvUpload">CSV importeren</label>
+        <input type="file" id="csvUpload" accept=".csv" />
+        <p id="csvStatus" style="margin-top: 6px; color: var(--primary); font-weight: 600;"></p>
+      </section>
+    </main>
+
+    <!-- ONTDEK VIEW -->
+    <main id="view-discover" class="view">
+      <h1 class="page-heading">Ontdek soorten</h1>
+
+      <div class="search-box">
+        <span class="search-icon" aria-hidden="true">🔍</span>
+        <input id="discoverSearchInput" type="search" placeholder="Filter op naam of kenmerk…" aria-label="Filter op naam" />
+      </div>
+
+      <span class="filter-label">Groep</span>
+      <div class="filter-row" id="filterGroupRow"></div>
+
+      <span class="filter-label">Habitat</span>
+      <div class="filter-row" id="filterHabitatRow"></div>
+
+      <span class="filter-label">Seizoen</span>
+      <div class="filter-row" id="filterSeasonRow"></div>
+
+      <span class="filter-label">Oorsprong</span>
+      <div class="filter-row" id="filterOriginRow"></div>
+
+      <p id="discoverCount" style="font-size: 0.88rem; color: var(--muted); margin-bottom: 12px;"></p>
+      <div class="species-grid" id="discoverGridContainer"></div>
+    </main>
+
+    <!-- DETAIL VIEW -->
+    <main id="view-detail" class="view">
+      <button type="button" class="back-btn" id="detailBackBtn">← Terug naar overzicht</button>
+      <div id="detailContent"></div>
+    </main>
+
+    <!-- MIJN LIJST VIEW -->
+    <main id="view-mylist" class="view">
+      <h1 class="page-heading">Mijn lijst</h1>
+      <p style="font-size: 0.9rem; color: var(--muted); margin-bottom: 14px;">
+        Bewaar je favoriete soorten en houd lokaal op dit apparaat bij welke soorten je hebt gezien.
+      </p>
+
+      <div class="export-bar">
+        <button type="button" class="action-btn active" onclick="exportChecklistCSV()">⬇️ Exporteer checklist (CSV)</button>
+      </div>
+
+      <section aria-labelledby="seen-heading">
+        <h2 id="seen-heading">Gezien (<span id="seenCount">0</span>)</h2>
+        <div id="seenListContainer"></div>
+      </section>
+
+      <section aria-labelledby="fav-heading">
+        <h2 id="fav-heading">Favorieten (<span id="favCount">0</span>)</h2>
+        <div id="favListContainer"></div>
+      </section>
+    </main>
+  </div>
+
+  <div class="toast" id="toast" role="status"></div>
+
+  <nav class="bottom-nav" aria-label="Hoofdnavigatie">
+    <div class="bottom-nav-inner">
+      <button class="nav-item active" id="nav-home" type="button" onclick="switchTab('home')"><span class="icon">🏠</span>Home</button>
+      <button class="nav-item" id="nav-discover" type="button" onclick="switchTab('discover')"><span class="icon">🧭</span>Ontdek</button>
+      <button class="nav-item" type="button" onclick="showPlaceholder('Kaart')"><span class="icon">🗺️</span>Kaart</button>
+      <button class="nav-item" type="button" onclick="switchTab('discover', true)"><span class="icon">🔎</span>Zoeken</button>
+      <button class="nav-item" id="nav-mylist" type="button" onclick="switchTab('mylist')"><span class="icon">📋</span>Mijn lijst</button>
+    </div>
+  </nav>
+
+  <script>
+    const GROUPS = [
+      { id: "alle", label: "Alles" },
+      { id: "vogels", label: "Vogels" },
+      { id: "vlinders", label: "Vlinders" },
+      { id: "bijen", label: "Bijen" },
+      { id: "hommels", label: "Hommels" },
+      { id: "kevers", label: "Kevers" },
+      { id: "bomen", label: "Bomen" },
+      { id: "wilde-planten", label: "Wilde planten" },
+      { id: "schimmels", label: "Schimmels" }
+    ];
+
+    const HABITATS = [
+      { id: "alle", label: "Alle habitats" },
+      { id: "bos", label: "Bos" },
+      { id: "grasland", label: "Grasland" },
+      { id: "tuin", label: "Tuin" },
+      { id: "stad", label: "Stad" },
+      { id: "water", label: "Water" },
+      { id: "duin", label: "Duin" },
+      { id: "heide", label: "Heide" },
+      { id: "akker", label: "Akker" }
+    ];
+
+    const SEASONS = [
+      { id: "alle", label: "Alle seizoenen" },
+      { id: "lente", label: "Lente" },
+      { id: "zomer", label: "Zomer" },
+      { id: "herfst", label: "Herfst" },
+      { id: "winter", label: "Winter" }
+    ];
+
+    const ORIGINS = [
+      { id: "alle", label: "Alle" },
+      { id: "inheems", label: "Inheems" },
+      { id: "niet-inheems", label: "Niet-inheems" },
+      { id: "geintroduceerd", label: "Geïntroduceerd" },
+      { id: "migrerend", label: "Migrerend" },
+      { id: "onzeker", label: "Onzeker" }
+    ];
+
+    const ORIGIN_LABELS = {
+      "inheems": "Inheems",
+      "niet-inheems": "Niet-inheems",
+      "geintroduceerd": "Geïntroduceerd",
+      "migrerend": "Migrerend",
+      "onzeker": "Onzeker"
+    };
+
+    const GROUP_LABELS = {
+      "vogels": "Vogels",
+      "vlinders": "Vlinders",
+      "bijen": "Bijen",
+      "hommels": "Hommels",
+      "kevers": "Kevers",
+      "bomen": "Bomen",
+      "wilde-planten": "Wilde planten",
+      "schimmels": "Schimmels"
+    };
+
+    const INITIAL_CSV = `slug,group,dutch_name,english_name,scientific_name,short_description_nl,habitat,flowering_or_flying_season,origin_status,photo_url,photo_credit,photo_license,photo_source_url,source_name,source_url
+pimpelmees,vogels,Pimpelmees,Eurasian blue tit,Cyanistes caeruleus,"Een kleine, kleurrijke vogel die vaak in tuinen, parken en loofbossen voorkomt.",tuin;bos,lente;zomer;herfst;winter,inheems,https://example.org/photos/pimpelmees.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/pimpelmees,Voorbeeldbron,https://example.org
+merel,vogels,Merel,Common blackbird,Turdus merula,Een veelvoorkomende zangvogel met een duidelijk verschil tussen mannetjes en vrouwtjes.,tuin;bos;stad,lente;zomer;herfst;winter,inheems,https://example.org/photos/merel.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/merel,Voorbeeldbron,https://example.org
+huismus,vogels,Huismus,House sparrow,Passer domesticus,"Een sociale, vaak luidruchtige vogel die vooral rond menselijke bewoning leeft.",stad;tuin,lente;zomer;herfst;winter,inheems,https://example.org/photos/huismus.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/huismus,Voorbeeldbron,https://example.org
+kokmeeuw,vogels,Kokmeeuw,Black-headed gull,Chroicocephalus ridibundus,Een algemene meeuw die zowel aan de kust als inland bij water en steden voorkomt.,water;stad,lente;zomer;herfst;winter,inheems,https://example.org/photos/kokmeeuw.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/kokmeeuw,Voorbeeldbron,https://example.org
+fazant,vogels,Fazant,Common pheasant,Phasianus colchicus,Een opvallende hoenderachtige vogel die vaak in open landschap en langs akkers voorkomt.,akker;grasland,lente;zomer;herfst;winter,geintroduceerd,https://example.org/photos/fazant.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/fazant,Voorbeeldbron,https://example.org
+atalanta,vlinders,Atalanta,Red admiral,Vanessa atalanta,"Een opvallende trekvlinder met zwarte vleugels, witte vlekken en oranjerode banden.",tuin;bos,lente;zomer;herfst,migrerend,https://example.org/photos/atalanta.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/atalanta,Voorbeeldbron,https://example.org
+dagpauwoog,vlinders,Dagpauwoog,Peacock butterfly,Aglais io,Een herkenbare vlinder met grote oogvlekken op roodbruine vleugels.,tuin;bos;grasland,lente;zomer;herfst,inheems,https://example.org/photos/dagpauwoog.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/dagpauwoog,Voorbeeldbron,https://example.org
+kleine-vos,vlinders,Kleine vos,Small tortoiseshell,Aglais urticae,"Een veelvoorkomende vlinder met oranje vleugels, zwarte en witte tekening en blauwe randvlekken.",tuin;grasland;bos,lente;zomer;herfst,inheems,https://example.org/photos/kleine-vos.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/kleine-vos,Voorbeeldbron,https://example.org
+groot-koolwitje,vlinders,Groot koolwitje,Large white,Pieris brassicae,"Een grote witte vlinder die vaak in tuinen, akkers en bloemrijke graslanden wordt gezien.",tuin;akker;grasland,lente;zomer,inheems,https://example.org/photos/groot-koolwitje.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/groot-koolwitje,Voorbeeldbron,https://example.org
+icarusblauwtje,vlinders,Icarusblauwtje,Common blue,Polyommatus icarus,"Een klein blauw vlindertje van bloemrijke graslanden, bermen en duinen.",grasland;duin,lente;zomer,inheems,https://example.org/photos/icarusblauwtje.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/icarusblauwtje,Voorbeeldbron,https://example.org
+honingbij,bijen,Honingbij,Western honey bee,Apis mellifera,Een sociale bij die in kolonien leeft en belangrijk is voor bestuiving van veel gewassen en wilde planten.,tuin;akker;grasland,lente;zomer;herfst,geintroduceerd,https://example.org/photos/honingbij.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/honingbij,Voorbeeldbron,https://example.org
+rotsbij,bijen,Rode metselbij,Red mason bee,Osmia bicornis,"Een solitaire bij die vaak in bijenhotels, holle stengels en muren nestelt.",tuin;stad;bos,lente,inheems,https://example.org/photos/rotsbij.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/rotsbij,Voorbeeldbron,https://example.org
+akkerhommel,hommels,Akkerhommel,Buff-tailed bumblebee,Bombus terrestris,"Een grote, algemene hommel die vaak in tuinen, parken en landbouwgebied foerageert.",tuin;akker;grasland,lente;zomer,inheems,https://example.org/photos/akkerhommel.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/akkerhommel,Voorbeeldbron,https://example.org
+weidehommel,hommels,Weidehommel,Common carder bee,Bombus pascuorum,"Een langharige, bruin-oranje hommel die vooral op bloemen in grasland en tuinen voorkomt.",grasland;tuin,lente;zomer;herfst,inheems,https://example.org/photos/weidehommel.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/weidehommel,Voorbeeldbron,https://example.org
+zevenstippelig-lieveheersbeestje,kevers,Zevenstippelig lieveheersbeestje,Seven-spot ladybird,Coccinella septempunctata,"Een bekende rode kever met zeven zwarte stippen, vaak op planten met bladluizen.",tuin;grasland;akker,lente;zomer;herfst,inheems,https://example.org/photos/zevenstippelig-lieveheersbeestje.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/zevenstippelig-lieveheersbeestje,Voorbeeldbron,https://example.org
+gewone-vuurkever,kevers,Gewone vuurkever,Common red soldier beetle,Rhagonycha fulva,"Een langwerpig, oranje-rode kever die vaak op bloemen zoals schermbloemigen zit.",grasland;bos;tuin,zomer,inheems,https://example.org/photos/gewone-vuurkever.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/gewone-vuurkever,Voorbeeldbron,https://example.org
+gewone-goldhaan,kevers,Gewone goudhaan,Green tiger beetle,Cicindela campestris,"Een snel bewegende, metallic groene grondkever van zonnige, open zandige plekken.",heide;duin;bos,lente;zomer,inheems,https://example.org/photos/gewone-goldhaan.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/gewone-goldhaan,Voorbeeldbron,https://example.org
+violettaaibooikever,kevers,Violette zandloopkever,Violet ground beetle,Carabus violaceus,"Een grote, donkere loopkever met een metaalachtige violette glans, vaak onder stenen en hout.",bos;tuin,lente;zomer;herfst,inheems,https://example.org/photos/violettaaibooikever.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/violettaaibooikever,Voorbeeldbron,https://example.org
+gewone-eik,bomen,Zomereik,English oak,Quercus robur,"Een grote, langlevende inheemse boom met gelobde bladeren en eikels; belangrijk voor veel dieren.",bos;grasland,lente;zomer;herfst;winter,inheems,https://example.org/photos/gewone-eik.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/gewone-eik,Voorbeeldbron,https://example.org
+ruwe-berk,bomen,Ruwe berk,Silver birch,Betula pendula,"Een lichtboom met witte bast en kleine bladeren, vaak in bos, heide en tuinen.",bos;heide;tuin,lente;zomer;herfst;winter,inheems,https://example.org/photos/ruwe-berk.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/ruwe-berk,Voorbeeldbron,https://example.org
+beuk,bomen,Beuk,European beech,Fagus sylvatica,"Een grote, dicht vertakte loofboom met gladde grijze bast en eetbare beukennoten.",bos,lente;zomer;herfst;winter,inheems,https://example.org/photos/beuk.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/beuk,Voorbeeldbron,https://example.org
+gewone-vlier,bomen,Gewone vlier,Elder,Sambucus nigra,Een snelgroeiende struik of kleine boom met schermbloemige witte bloemen en zwarte bessen.,bos;tuin;stad,lente;zomer,inheems,https://example.org/photos/gewone-vlier.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/gewone-vlier,Voorbeeldbron,https://example.org
+gewone-paardenbloem,wilde-planten,Gewoon paardenbloem,Common dandelion,Taraxacum officinale,"Een bekende gele composiet met melksap en pluiszaden, die op veel grondsoorten voorkomt.",grasland;tuin;akker,lente;zomer;herfst,inheems,https://example.org/photos/gewone-paardenbloem.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/gewone-paardenbloem,Voorbeeldbron,https://example.org
+gewone-duizendknoop,wilde-planten,Japanse duizendknoop,Japanese knotweed,Reynoutria japonica,"Een krachtige, invasieve plant met holle stengels en witte bloempluimen, vooral langs water en infrastructuur.",water;stad,zomer;herfst,niet-inheems,https://example.org/photos/gewone-duizendknoop.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/gewone-duizendknoop,Voorbeeldbron,https://example.org
+vliegende-zwam,schimmels,Vliegende zwam,Fly agaric,Amanita muscaria,Een opvallende rood-witte paddenstoel die vaak bij berken en dennen voorkomt; niet eetbaar.,bos;heide,herfst,inheems,https://example.org/photos/vliegende-zwam.jpg,Voorbeeldfotograaf,CC-BY 4.0,https://example.org/media/vliegende-zwam,Voorbeeldbron,https://example.org`;
+
+    let speciesList = [];
+    let currentTab = "home";
+    let previousTab = "home";
+
+    let homeGroup = "alle";
+    let homeQuery = "";
+
+    let filterGroup = "alle";
+    let filterHabitat = "alle";
+    let filterSeason = "alle";
+    let filterOrigin = "alle";
+    let discoverQuery = "";
+
+    // Lokale opslag voor Favorieten & Gezien
+    let favorites = JSON.parse(localStorage.getItem("soorten_nl_favs") || "[]");
+    let sightings = JSON.parse(localStorage.getItem("soorten_nl_seen") || "{}");
+
+    function saveUserLists() {
+      localStorage.setItem("soorten_nl_favs", JSON.stringify(favorites));
+      localStorage.setItem("soorten_nl_seen", JSON.stringify(sightings));
+    }
+
+    function toggleFavorite(slug) {
+      if (favorites.includes(slug)) {
+        favorites = favorites.filter(s => s !== slug);
+        showToast("Verwijderd uit favorieten");
+      } else {
+        favorites.push(slug);
+        showToast("Toegevoegd aan favorieten");
+      }
+      saveUserLists();
+      if (currentTab === "detail") openDetail(slug);
+      if (currentTab === "mylist") renderMyList();
+    }
+
+    function toggleSeen(slug) {
+      if (sightings[slug]) {
+        delete sightings[slug];
+        showToast("Verwijderd uit geziene soorten");
+      } else {
+        sightings[slug] = new Date().toLocaleDateString("nl-NL");
+        showToast("Gemarkeerd als gezien");
+      }
+      saveUserLists();
+      if (currentTab === "detail") openDetail(slug);
+      if (currentTab === "mylist") renderMyList();
+    }
+
+    function exportChecklistCSV() {
+      const rows = [["slug", "nederlandse_naam", "wetenschappelijke_naam", "groep", "favoriet", "gezien", "datum_gezien"]];
+      speciesList.forEach(s => {
+        const isFav = favorites.includes(s.slug) ? "ja" : "nee";
+        const seenDate = sightings[s.slug] || "";
+        const isSeen = seenDate ? "ja" : "nee";
+        if (isFav === "ja" || isSeen === "ja") {
+          rows.push([s.slug, s.dutch_name, s.scientific_name, s.group, isFav, isSeen, seenDate]);
+        }
+      });
+
+      if (rows.length === 1) {
+        showToast("Voeg eerst favorieten of geziene soorten toe.");
+        return;
+      }
+
+      const csvContent = rows.map(r => r.map(v => `"${String(v).replace(/"/g, '""')}"`).join(",")).join("\n");
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = "mijn-soortenlijst-nederland.csv";
+      a.click();
+      URL.revokeObjectURL(url);
+      showToast("Checklist gedownload als CSV");
+    }
+
+    function parseCSV(text) {
+      const rows = [];
+      let current = "";
+      let inQuotes = false;
+      let row = [];
+
+      for (let i = 0; i < text.length; i++) {
+        const char = text[i];
+        const next = text[i + 1];
+        if (char === '"' && inQuotes && next === '"') {
+          current += '"'; i++;
+        } else if (char === '"') {
+          inQuotes = !inQuotes;
+        } else if (char === ',' && !inQuotes) {
+          row.push(current.trim()); current = "";
+        } else if ((char === '\n' || char === '\r') && !inQuotes) {
+          if (current.length > 0 || row.length > 0) {
+            row.push(current.trim());
+            rows.push(row);
+            row = []; current = "";
+          }
+        } else {
+          current += char;
+        }
+      }
+      if (current.length > 0 || row.length > 0) {
+        row.push(current.trim());
+        rows.push(row);
+      }
+
+      const headers = rows[0];
+      return rows.slice(1).map(r => {
+        const obj = {};
+        headers.forEach((h, idx) => obj[h] = r[idx] || "");
+        return obj;
+      });
+    }
+
+    function capitalizeList(semicolonStr) {
+      if (!semicolonStr) return "Onbekend";
+      return semicolonStr
+        .split(";")
+        .map(s => s.trim())
+        .filter(Boolean)
+        .map(s => s.charAt(0).toUpperCase() + s.slice(1))
+        .join(", ");
+    }
+
+    function renderPhotoFrame(item, sizeClass) {
+      const isExample = item.photo_url.includes("example.org");
+      const imgTag = isExample ? "" : `<img src="${item.photo_url}" alt="${item.dutch_name} (${item.scientific_name})" loading="lazy" />`;
+      return `
+        <div class="photo-frame ${sizeClass}">
+          ${imgTag}
+          <span class="photo-placeholder-text">${isExample ? item.photo_url : ""}</span>
+          <span class="photo-credit-tag">${item.photo_credit} · ${item.photo_license}</span>
+        </div>
+      `;
+    }
+
+    function renderSpeciesCard(s, sizeClass = "thumb", includeDesc = false) {
+      return `
+        <article class="card" role="button" tabindex="0" onclick="openDetail('${s.slug}')" onkeydown="if(event.key==='Enter') openDetail('${s.slug}')">
+          ${renderPhotoFrame(s, sizeClass)}
+          <div class="card-body">
+            <div class="species-nl">${s.dutch_name}</div>
+            <div class="species-sci">${s.scientific_name}</div>
+            <div class="badge-row">
+              <span class="badge badge-group">${GROUP_LABELS[s.group] || s.group}</span>
+              <span class="badge badge-${s.origin_status}">${ORIGIN_LABELS[s.origin_status] || s.origin_status}</span>
+            </div>
+            ${includeDesc ? `<p class="species-desc">${s.short_description_nl}</p>` : ""}
+          </div>
+        </article>
+      `;
+    }
+
+    function renderChipRow(containerId, items, activeValue, onSelect) {
+      const container = document.getElementById(containerId);
+      container.innerHTML = items.map(item => `
+        <button type="button" class="chip ${activeValue === item.id ? "active" : ""}" data-val="${item.id}">
+          ${item.label}
+        </button>
+      `).join("");
+      container.querySelectorAll("button").forEach(btn => {
+        btn.addEventListener("click", () => onSelect(btn.dataset.val));
+      });
+    }
+
+    function renderHome() {
+      renderChipRow("homeGroupShortcuts", GROUPS, homeGroup, val => {
+        homeGroup = val;
+        renderHome();
+      });
+
+      const featured = speciesList[0];
+      const featuredEl = document.getElementById("featuredContainer");
+      if (featured) {
+        featuredEl.innerHTML = renderSpeciesCard(featured, "hero", true);
+      }
+
+      const filtered = speciesList.slice(1).filter(s => {
+        const matchesGroup = homeGroup === "alle" || s.group === homeGroup;
+        const q = homeQuery.toLowerCase();
+        const matchesSearch = !q ||
+          s.dutch_name.toLowerCase().includes(q) ||
+          s.scientific_name.toLowerCase().includes(q) ||
+          s.english_name.toLowerCase().includes(q);
+        return matchesGroup && matchesSearch;
+      }).slice(0, 8);
+
+      const gridEl = document.getElementById("homeGridContainer");
+      if (filtered.length === 0) {
+        gridEl.innerHTML = `<div class="empty-state" style="grid-column: 1 / -1;">Geen soorten gevonden voor deze selectie.</div>`;
+        return;
+      }
+      gridEl.innerHTML = filtered.map(s => renderSpeciesCard(s, "thumb", false)).join("");
+    }
+
+    function renderDiscover() {
+      renderChipRow("filterGroupRow", GROUPS, filterGroup, val => { filterGroup = val; renderDiscover(); });
+      renderChipRow("filterHabitatRow", HABITATS, filterHabitat, val => { filterHabitat = val; renderDiscover(); });
+      renderChipRow("filterSeasonRow", SEASONS, filterSeason, val => { filterSeason = val; renderDiscover(); });
+      renderChipRow("filterOriginRow", ORIGINS, filterOrigin, val => { filterOrigin = val; renderDiscover(); });
+
+      const matches = speciesList.filter(s => {
+        const gOk = filterGroup === "alle" || s.group === filterGroup;
+        const hList = s.habitat.split(";").map(x => x.trim());
+        const hOk = filterHabitat === "alle" || hList.includes(filterHabitat);
+        const sList = s.flowering_or_flying_season.split(";").map(x => x.trim());
+        const sOk = filterSeason === "alle" || sList.includes(filterSeason);
+        const oOk = filterOrigin === "alle" || s.origin_status === filterOrigin;
+        const q = discoverQuery.toLowerCase();
+        const qOk = !q ||
+          s.dutch_name.toLowerCase().includes(q) ||
+          s.scientific_name.toLowerCase().includes(q) ||
+          s.english_name.toLowerCase().includes(q) ||
+          s.short_description_nl.toLowerCase().includes(q);
+        return gOk && hOk && sOk && oOk && qOk;
+      });
+
+      document.getElementById("discoverCount").textContent = `${matches.length} ${matches.length === 1 ? "soort" : "soorten"} gevonden`;
+
+      const gridEl = document.getElementById("discoverGridContainer");
+      if (matches.length === 0) {
+        gridEl.innerHTML = `
+          <div class="empty-state" style="grid-column: 1 / -1;">
+            <p>Geen soorten gevonden met deze combinatie van filters.</p>
+            <button type="button" class="reset-btn" onclick="resetDiscoverFilters()">Filters wissen</button>
+          </div>
+        `;
+        return;
+      }
+      gridEl.innerHTML = matches.map(s => renderSpeciesCard(s, "thumb", false)).join("");
+    }
+
+    function resetDiscoverFilters() {
+      filterGroup = "alle";
+      filterHabitat = "alle";
+      filterSeason = "alle";
+      filterOrigin = "alle";
+      discoverQuery = "";
+      document.getElementById("discoverSearchInput").value = "";
+      renderDiscover();
+    }
+
+    function openDetail(slug) {
+      const item = speciesList.find(s => s.slug === slug);
+      if (!item) return;
+
+      if (currentTab !== "detail") {
+        previousTab = currentTab;
+      }
+      currentTab = "detail";
+
+      document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+      document.getElementById("view-detail").classList.add("active");
+      window.scrollTo({ top: 0, behavior: "smooth" });
+
+      const isFav = favorites.includes(slug);
+      const isSeen = Boolean(sightings[slug]);
+
+      const detailEl = document.getElementById("detailContent");
+      detailEl.innerHTML = `
+        ${renderPhotoFrame(item, "detail-hero")}
+        <div class="detail-card">
+          <h1 class="detail-title">${item.dutch_name}</h1>
+          ${item.english_name ? `<div class="detail-en">Engels: ${item.english_name}</div>` : ""}
+          <div class="detail-sci">${item.scientific_name}</div>
+          <div class="badge-row">
+            <span class="badge badge-group">${GROUP_LABELS[item.group] || item.group}</span>
+            <span class="badge badge-${item.origin_status}">${ORIGIN_LABELS[item.origin_status] || item.origin_status}</span>
+          </div>
+
+          <div class="action-row">
+            <button type="button" class="action-btn ${isFav ? "active" : ""}" onclick="toggleFavorite('${item.slug}')">
+              ${isFav ? "★ Favoriet" : "☆ Favoriet"}
+            </button>
+            <button type="button" class="action-btn ${isSeen ? "active" : ""}" onclick="toggleSeen('${item.slug}')">
+              ${isSeen ? "✓ Gezien" : "+ Markeer gezien"}
+            </button>
+          </div>
+
+          <p class="species-desc" style="margin-top: 14px;">${item.short_description_nl}</p>
+
+          <div class="meta-grid">
+            <div class="meta-item">
+              <strong>Habitat</strong>
+              <span>${capitalizeList(item.habitat)}</span>
+            </div>
+            <div class="meta-item">
+              <strong>Bloei- of vliegtijd</strong>
+              <span>${capitalizeList(item.flowering_or_flying_season)}</span>
+            </div>
+            ${item.identification_notes_nl ? `
+              <div class="meta-item">
+                <strong>Herkenning</strong>
+                <span>${item.identification_notes_nl}</span>
+              </div>
+            ` : ""}
+            ${item.similar_species ? `
+              <div class="meta-item">
+                <strong>Gelijkende soorten</strong>
+                <span>${item.similar_species}</span>
+              </div>
+            ` : ""}
+          </div>
+        </div>
+
+        <div class="detail-card">
+          <div class="meta-item">
+            <strong>Fotovermelding & licentie</strong>
+            <span>${item.photo_credit} (${item.photo_license})</span><br />
+            ${item.photo_source_url ? `<a href="${item.photo_source_url}" target="_blank" rel="noopener noreferrer">Bekijk fotobron</a>` : ""}
+          </div>
+          ${item.source_name ? `
+            <div class="meta-item" style="margin-top: 12px;">
+              <strong>Soortbron</strong>
+              ${item.source_url ? `<a href="${item.source_url}" target="_blank" rel="noopener noreferrer">${item.source_name}</a>` : `<span>${item.source_name}</span>`}
+            </div>
+          ` : ""}
+        </div>
+      `;
+    }
+
+    function renderMyList() {
+      const seenSlugs = Object.keys(sightings);
+      document.getElementById("seenCount").textContent = seenSlugs.length;
+      document.getElementById("favCount").textContent = favorites.length;
+
+      const seenContainer = document.getElementById("seenListContainer");
+      if (seenSlugs.length === 0) {
+        seenContainer.innerHTML = `<div class="empty-state">Je hebt nog geen soorten als gezien gemarkeerd.</div>`;
+      } else {
+        seenContainer.innerHTML = seenSlugs.map(slug => {
+          const s = speciesList.find(x => x.slug === slug);
+          if (!s) return "";
+          return `
+            <div class="list-row">
+              <div class="list-row-info" onclick="openDetail('${s.slug}')">
+                <div class="list-row-title">${s.dutch_name}</div>
+                <div class="list-row-sub"><em>${s.scientific_name}</em> · Gezien op ${sightings[slug]}</div>
+              </div>
+              <button type="button" class="icon-btn" aria-label="Verwijder uit gezien" onclick="toggleSeen('${s.slug}')">✕</button>
+            </div>
+          `;
+        }).join("");
+      }
+
+      const favContainer = document.getElementById("favListContainer");
+      if (favorites.length === 0) {
+        favContainer.innerHTML = `<div class="empty-state">Je hebt nog geen favoriete soorten opgeslagen.</div>`;
+      } else {
+        favContainer.innerHTML = favorites.map(slug => {
+          const s = speciesList.find(x => x.slug === slug);
+          if (!s) return "";
+          return `
+            <div class="list-row">
+              <div class="list-row-info" onclick="openDetail('${s.slug}')">
+                <div class="list-row-title">${s.dutch_name}</div>
+                <div class="list-row-sub"><em>${s.scientific_name}</em> · ${GROUP_LABELS[s.group] || s.group}</div>
+              </div>
+              <button type="button" class="icon-btn" aria-label="Verwijder uit favorieten" onclick="toggleFavorite('${s.slug}')">✕</button>
+            </div>
+          `;
+        }).join("");
+      }
+    }
+
+    function switchTab(tab, focusSearch = false) {
+      currentTab = tab;
+      document.querySelectorAll(".view").forEach(v => v.classList.remove("active"));
+      document.getElementById(`view-${tab}`).classList.add("active");
+
+      document.querySelectorAll(".nav-item").forEach(btn => btn.classList.remove("active"));
+      const navBtn = document.getElementById(`nav-${tab}`);
+      if (navBtn) navBtn.classList.add("active");
+
+      window.scrollTo({ top: 0, behavior: "smooth" });
+      if (tab === "discover") {
+        renderDiscover();
+        if (focusSearch) {
+          setTimeout(() => document.getElementById("discoverSearchInput").focus(), 50);
+        }
+      } else if (tab === "home") {
+        renderHome();
+      } else if (tab === "mylist") {
+        renderMyList();
+      }
+    }
+
+    function showToast(msg) {
+      const toast = document.getElementById("toast");
+      toast.textContent = msg;
+      toast.style.display = "block";
+      clearTimeout(window.toastTimer);
+      window.toastTimer = setTimeout(() => { toast.style.display = "none"; }, 2200);
+    }
+
+    function showPlaceholder(name) {
+      showToast(`Tabblad "${name}" volgt in een volgende versie.`);
+    }
+
+    document.getElementById("detailBackBtn").addEventListener("click", () => {
+      switchTab(previousTab || "home");
+    });
+
+    document.getElementById("homeSearchInput").addEventListener("input", e => {
+      homeQuery = e.target.value;
+      renderHome();
+    });
+
+    document.getElementById("discoverSearchInput").addEventListener("input", e => {
+      discoverQuery = e.target.value;
+      renderDiscover();
+    });
+
+    document.getElementById("csvUpload").addEventListener("change", e => {
+      const file = e.target.files[0];
+      if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const parsed = parseCSV(ev.target.result);
+        if (parsed.length > 0) {
+          speciesList = parsed;
+          document.getElementById("csvStatus").textContent = `${parsed.length} soorten geladen uit ${file.name}.`;
+          renderHome();
+          renderDiscover();
+          renderMyList();
+        }
+      };
+      reader.readAsText(file, "UTF-8");
+    });
+
+    if ("serviceWorker" in navigator) {
+      navigator.serviceWorker.register("sw.js").catch(() => {});
+    }
+
+    speciesList = parseCSV(INITIAL_CSV);
+    renderHome();
+  </script>
+</body>
+</html>
